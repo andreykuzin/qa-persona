@@ -149,6 +149,18 @@ qa-persona stands on traditions and overlaps with each. None do all of: a fixed-
 - **[wshobson/agents · qa-orchestra](https://github.com/wshobson/agents)** — multi-agent QA with Chrome MCP; orchestrator pattern, single-pass.
 - **mabl / Functionize** — closed-source AI-driven exploratory + self-healing; flow-based, no persona catalog or run journal exposed as artifacts.
 
+## Security model
+
+qa-persona drives shell execution (the bash scaffold is sourced and run) and asks for credentials (persona logins, gh auth). A few things to know:
+
+- **Persona passwords come from environment variables**, not the codebase. The templates use `${PERSONA_PW}` and `${ADMIN_PW}` with safe defaults; production credentials never go in `seed-personas.sh`. If you set a real password, set it in your shell or `.env` — not in the file.
+- **The bash templates are scaffolding**, not vendored runtime code. You read what's there, adapt the API helpers to your platform, and commit the result. The plugin never executes anything you haven't reviewed.
+- **`gh` auth is reused, not requested.** `/qa-persona:bug` calls `gh issue create` against whichever auth `gh auth status` already has. The plugin doesn't ask for, store, or transmit tokens.
+- **No telemetry.** The plugin makes no network calls of its own. `gh` and your browser tool are the only outbound connections, and only when you invoke a command that uses them.
+- **`--parallel` walkthroughs spawn sub-agents** via the Agent tool, each scoped to one persona's view by prompt. The persona-isolation contract is best-effort (model-level), not OS-level — treat findings as "more honest than sequential," not formally isolated.
+
+If you find an injection vector, credential leak, or anything else security-relevant, please email or open a private security advisory rather than a public issue.
+
 ## Why not just Playwright?
 
 Playwright tests UI rendering. This methodology tests business reality — did the right actor see the right thing at the right time, and is the resulting data shape something the next workflow can actually use. The narrative walkthrough forces you to write down what was confusing, what was missing, what should have been there. No automation generates that.

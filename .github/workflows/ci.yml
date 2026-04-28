@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    name: ShellCheck templates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: ./templates
+          severity: warning
+          # SC1091 = sourced file not found (lib.sh sources are project-local templates)
+          # SC2086 = unquoted variable in jq filter args (intentional)
+          ignore_paths: ''
+
+  validate-skill:
+    name: Validate SKILL.md frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check frontmatter exists
+        run: |
+          head -1 SKILL.md | grep -q '^---$' || { echo "SKILL.md must start with '---'"; exit 1; }
+
+      - name: Check name and description fields present
+        run: |
+          awk '/^---$/{c++; next} c==1' SKILL.md | grep -q '^name:' || { echo "Missing 'name:' field"; exit 1; }
+          awk '/^---$/{c++; next} c==1' SKILL.md | grep -q '^description:' || { echo "Missing 'description:' field"; exit 1; }
+
+      - name: Check name format (letters, numbers, hyphens only)
+        run: |
+          NAME=$(awk '/^---$/{c++; next} c==1 && /^name:/' SKILL.md | sed 's/name: *//')
+          echo "$NAME" | grep -qE '^[a-zA-Z0-9-]+$' || { echo "name must only contain letters, numbers, hyphens. Got: $NAME"; exit 1; }
+          echo "✓ name='$NAME' is valid"
+
+      - name: Check description starts with 'Use when'
+        run: |
+          DESC=$(awk '/^---$/{c++; next} c==1 && /^description:/' SKILL.md | sed 's/description: *//')
+          echo "$DESC" | grep -qE '^Use when' || { echo "description should start with 'Use when' (CSO best practice). Got: $DESC"; exit 1; }
+          echo "✓ description follows CSO format"
+
+      - name: Check frontmatter under 1024 chars
+        run: |
+          BYTES=$(awk '/^---$/{c++} c==1' SKILL.md | wc -c)
+          if [ "$BYTES" -gt 1024 ]; then
+            echo "Frontmatter too long: $BYTES bytes (max 1024)"
+            exit 1
+          fi
+          echo "✓ frontmatter is $BYTES bytes (under 1024)"
+
+  templates-runnable:
+    name: Templates parse without syntax errors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash -n on each template
+        run: |
+          for f in templates/*.sh; do
+            bash -n "$f" || { echo "Syntax error in $f"; exit 1; }
+            echo "✓ $f"
+          done
+
+  link-check:
+    name: Internal links resolve
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify referenced files exist
+        run: |
+          MISSING=0
+          for ref in $(grep -oE '`templates/[^`]+`' SKILL.md | tr -d '`' | sort -u); do
+            if [ ! -f "$ref" ]; then
+              echo "✗ SKILL.md references missing file: $ref"
+              MISSING=$((MISSING+1))
+            else
+              echo "✓ $ref"
+            fi
+          done
+          [ "$MISSING" -eq 0 ] || exit 1

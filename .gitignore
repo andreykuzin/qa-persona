@@ -1,0 +1,19 @@
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local notes / scratch
+notes/
+scratch/
+
+# Generated artifacts (consumers of this skill produce these in *their* repos)
+docs/qa-persona/
+evidence/qa-persona/
+scripts/qa/*-e2e/scenarios/*.local.sh

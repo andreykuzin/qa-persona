@@ -1,0 +1,7 @@
+# Force LF line endings for shell scripts and YAML — CRLF breaks bash on Unix
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Markdown can stay platform-native
+*.md text

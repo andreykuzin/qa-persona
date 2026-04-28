@@ -77,7 +77,8 @@ jobs:
       - name: Verify referenced files exist
         run: |
           MISSING=0
-          for ref in $(grep -oE '`templates/[^`]+`' SKILL.md | tr -d '`' | sort -u); do
+          # Match only literal-looking paths: templates/<name>.<ext> with no shell metachars.
+          for ref in $(grep -oE '`templates/[a-zA-Z0-9_-]+\.(sh|md|yml|yaml)`' SKILL.md | tr -d '`' | sort -u); do
             if [ ! -f "$ref" ]; then
               echo "✗ SKILL.md references missing file: $ref"
               MISSING=$((MISSING+1))

@@ -70,7 +70,7 @@ Set up `scripts/qa/<flow-name>-e2e/`:
 
 Each runner: setup → actors act via curl → `verify_<entity>` prints the lifecycle truth table → grep asserts → exits with `SCENARIO PASSED` or `SCENARIO FAILED`. 10–30s per run.
 
-Templates: `templates/seed-personas.sh`, `templates/lib.sh`, `templates/scenario.sh`, `templates/run-all.sh`, `templates/reset.sh`.
+Templates: `templates/seed-personas.sh`, `templates/lib.sh`, `templates/scenario.sh`, `templates/run-all.sh`, and `templates/reset.sh`.
 
 ### Phase 5 — Layer 2 walkthrough (browser)
 
@@ -102,7 +102,7 @@ The catalog grows monotonically. The bug tracker is the running ledger.
 | Scenarios | `docs/qa-persona/scenarios.md` | `templates/scenarios.md` |
 | Bug tracker | `docs/qa-persona/bugs.md` | `templates/bug-tracker.md` |
 | Walkthrough | `docs/qa-persona/walkthrough-RUN-N.md` | `templates/walkthrough-report.md` |
-| Layer 1 scaffold | `scripts/qa/<flow>-e2e/` | `templates/{seed-personas,lib,scenario}.sh` |
+| Layer 1 scaffold | `scripts/qa/<flow>-e2e/` | `templates/seed-personas.sh`, `templates/lib.sh`, `templates/scenario.sh`, `templates/run-all.sh`, `templates/reset.sh` |
 | Evidence | `evidence/qa-persona/*.png` | (no template) |
 
 ## Common Mistakes

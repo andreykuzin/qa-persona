@@ -2,13 +2,20 @@
 # Run every scenario in scenarios/, tally results, exit non-zero on any FAIL.
 # Optional first arg: glob to filter (e.g. ./run-all.sh 'A* D*')
 set -u
-cd "$(git rev-parse --show-toplevel)"
+cd "$(git rev-parse --show-toplevel)" || exit 1
 
 SCENARIO_DIR="scripts/qa/FLOW_NAME-e2e/scenarios"
 FILTER="${1:-*}"
 
 shopt -s nullglob
-mapfile -t SCRIPTS < <(cd "$SCENARIO_DIR" && ls $FILTER 2>/dev/null | grep -E '\.sh$' | sort)
+# shellcheck disable=SC2206  # intentional word-split on FILTER glob
+mapfile -t SCRIPTS < <(
+    cd "$SCENARIO_DIR" || exit 1
+    files=( $FILTER )
+    for f in "${files[@]}"; do
+        [[ "$f" == *.sh ]] && echo "$f"
+    done | sort
+)
 
 if [ ${#SCRIPTS[@]} -eq 0 ]; then
     echo "No scenarios match filter: $FILTER"

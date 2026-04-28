@@ -1,5 +1,9 @@
 # qa-persona
 
+[![CI](https://github.com/andreykuzin/qa-persona/actions/workflows/ci.yml/badge.svg)](https://github.com/andreykuzin/qa-persona/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/github/v/tag/andreykuzin/qa-persona?label=version)](https://github.com/andreykuzin/qa-persona/releases)
+
 End-to-end testing for multi-user SaaS apps, driven by AI-generated personas with goals, scope, and a point of view. Catches the bugs unit tests can't.
 
 ## The problem

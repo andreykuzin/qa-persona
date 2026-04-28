@@ -83,6 +83,19 @@ evidence/qa-persona/
 - Libraries with no UI.
 - Pure backend services without human consumers.
 
+## Related work
+
+qa-persona stands on the shoulders of several traditions and overlaps partially with each. None do all of: fixed-email persona catalog + API-first/browser-second ordering + append-only Run #N journal + verified-fixed bug tracker + coverage that grows with each ship.
+
+- **Persona-Based Testing** (manual-QA discipline) — qa-persona inherits the "named actor with goals/frustrations" idea and automates it.
+- **BDD / Gherkin / Cucumber / SpecFlow** — "As a &lt;persona&gt;" is canonical, but persona is per-scenario; qa-persona promotes it to a stable catalog.
+- **[Karate DSL](https://karatelabs.io/)** — closest non-AI cousin to the unified API+UI layer.
+- **[Xray (Jira)](https://www.getxray.app/)** — closest cousin to "coverage tied to releases," but manually curated, not journal-style.
+- **[agentmantis/test-skills](https://github.com/agentmantis/test-skills)** — Playwright SDET skills with handover→regression promotion; framework-discipline rather than persona/journal-driven.
+- **[firstloophq/claude-code-test-runner](https://github.com/firstloophq/claude-code-test-runner)** — natural-language E2E runner with a Test State MCP for pass/fail; no personas, no two-layer ordering.
+- **[wshobson/agents · qa-orchestra](https://github.com/wshobson/agents)** — multi-agent QA with Chrome MCP; orchestrator pattern, single-pass.
+- **mabl / Functionize** — closed-source AI-driven exploratory + self-healing; flow-based, no persona catalog or run journal exposed as artifacts.
+
 ## Origin
 
 Battle-tested on a B2B fiber marketplace (FiberCo ↔ ISP RFP). Three runs across single-supplier and three-supplier scenarios surfaced 6 bugs and 14 prioritized improvements that no unit test caught. See `examples/README.md` for the full case study.

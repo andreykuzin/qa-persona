@@ -15,7 +15,7 @@ jobs:
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@master
         with:
-          scandir: ./templates
+          scandir: ./skills/qa-persona/templates
           severity: warning
           # SC1091 = sourced file not found (lib.sh sources are project-local templates)
           # SC2086 = unquoted variable in jq filter args (intentional)
@@ -29,33 +29,105 @@ jobs:
 
       - name: Check frontmatter exists
         run: |
-          head -1 SKILL.md | grep -q '^---$' || { echo "SKILL.md must start with '---'"; exit 1; }
+          head -1 skills/qa-persona/SKILL.md | grep -q '^---$' || { echo "SKILL.md must start with '---'"; exit 1; }
 
       - name: Check name and description fields present
         run: |
-          awk '/^---$/{c++; next} c==1' SKILL.md | grep -q '^name:' || { echo "Missing 'name:' field"; exit 1; }
-          awk '/^---$/{c++; next} c==1' SKILL.md | grep -q '^description:' || { echo "Missing 'description:' field"; exit 1; }
+          awk '/^---$/{c++; next} c==1' skills/qa-persona/SKILL.md | grep -q '^name:' || { echo "Missing 'name:' field"; exit 1; }
+          awk '/^---$/{c++; next} c==1' skills/qa-persona/SKILL.md | grep -q '^description:' || { echo "Missing 'description:' field"; exit 1; }
 
       - name: Check name format (letters, numbers, hyphens only)
         run: |
-          NAME=$(awk '/^---$/{c++; next} c==1 && /^name:/' SKILL.md | sed 's/name: *//')
+          NAME=$(awk '/^---$/{c++; next} c==1 && /^name:/' skills/qa-persona/SKILL.md | sed 's/name: *//')
           echo "$NAME" | grep -qE '^[a-zA-Z0-9-]+$' || { echo "name must only contain letters, numbers, hyphens. Got: $NAME"; exit 1; }
           echo "✓ name='$NAME' is valid"
 
       - name: Check description starts with 'Use when'
         run: |
-          DESC=$(awk '/^---$/{c++; next} c==1 && /^description:/' SKILL.md | sed 's/description: *//')
+          DESC=$(awk '/^---$/{c++; next} c==1 && /^description:/' skills/qa-persona/SKILL.md | sed 's/description: *//')
           echo "$DESC" | grep -qE '^Use when' || { echo "description should start with 'Use when' (CSO best practice). Got: $DESC"; exit 1; }
           echo "✓ description follows CSO format"
 
       - name: Check frontmatter under 1024 chars
         run: |
-          BYTES=$(awk '/^---$/{c++} c==1' SKILL.md | wc -c)
+          BYTES=$(awk '/^---$/{c++} c==1' skills/qa-persona/SKILL.md | wc -c)
           if [ "$BYTES" -gt 1024 ]; then
             echo "Frontmatter too long: $BYTES bytes (max 1024)"
             exit 1
           fi
           echo "✓ frontmatter is $BYTES bytes (under 1024)"
+
+  validate-plugin:
+    name: Validate plugin manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: plugin.json exists
+        run: |
+          test -f .claude-plugin/plugin.json || { echo "Missing .claude-plugin/plugin.json"; exit 1; }
+          echo "✓ manifest present"
+
+      - name: plugin.json is valid JSON
+        run: |
+          jq empty .claude-plugin/plugin.json
+          echo "✓ valid JSON"
+
+      - name: Required fields present
+        run: |
+          NAME=$(jq -r '.name // empty' .claude-plugin/plugin.json)
+          DESC=$(jq -r '.description // empty' .claude-plugin/plugin.json)
+          [ -n "$NAME" ] || { echo "plugin.json missing 'name'"; exit 1; }
+          [ -n "$DESC" ] || { echo "plugin.json missing 'description'"; exit 1; }
+          echo "$NAME" | grep -qE '^[a-z0-9-]+$' || { echo "plugin name must be lowercase + hyphens. Got: $NAME"; exit 1; }
+          echo "✓ name='$NAME' description present"
+
+      - name: Skill referenced by plugin exists
+        run: |
+          NAME=$(jq -r '.name' .claude-plugin/plugin.json)
+          test -f "skills/$NAME/SKILL.md" || { echo "Expected skills/$NAME/SKILL.md to exist"; exit 1; }
+          echo "✓ skills/$NAME/SKILL.md found"
+
+  validate-commands:
+    name: Validate slash command frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Each command has frontmatter with description
+        run: |
+          MISSING=0
+          for f in commands/*.md; do
+            head -1 "$f" | grep -q '^---$' || { echo "✗ $f: missing frontmatter"; MISSING=$((MISSING+1)); continue; }
+            awk '/^---$/{c++; next} c==1' "$f" | grep -q '^description:' || { echo "✗ $f: missing description"; MISSING=$((MISSING+1)); continue; }
+            echo "✓ $f"
+          done
+          [ "$MISSING" -eq 0 ] || exit 1
+
+  validate-subskills:
+    name: Validate subskill frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Each subskill has name, version, description, allowed-tools, triggers
+        run: |
+          MISSING=0
+          for f in skills/qa-persona-*/SKILL.md; do
+            DIR=$(dirname "$f")
+            EXPECTED_NAME=$(basename "$DIR")
+            head -1 "$f" | grep -q '^---$' || { echo "✗ $f: missing frontmatter"; MISSING=$((MISSING+1)); continue; }
+            FM=$(awk '/^---$/{c++; next} c==1' "$f")
+            for field in name version description allowed-tools triggers; do
+              echo "$FM" | grep -q "^${field}:" || { echo "✗ $f: missing '${field}' field"; MISSING=$((MISSING+1)); }
+            done
+            ACTUAL_NAME=$(echo "$FM" | awk '/^name:/{print $2; exit}')
+            if [ "$ACTUAL_NAME" != "$EXPECTED_NAME" ]; then
+              echo "✗ $f: name='$ACTUAL_NAME' but directory='$EXPECTED_NAME'"
+              MISSING=$((MISSING+1))
+            fi
+            echo "$ACTUAL_NAME" | grep -qE '^[a-z0-9-]+$' || { echo "✗ $f: name must be lowercase + hyphens"; MISSING=$((MISSING+1)); }
+            echo "✓ $f"
+          done
+          [ "$MISSING" -eq 0 ] || exit 1
 
   templates-runnable:
     name: Templates parse without syntax errors
@@ -64,7 +136,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Bash -n on each template
         run: |
-          for f in templates/*.sh; do
+          for f in skills/qa-persona/templates/*.sh; do
             bash -n "$f" || { echo "Syntax error in $f"; exit 1; }
             echo "✓ $f"
           done
@@ -78,12 +150,14 @@ jobs:
         run: |
           MISSING=0
           # Match only literal-looking paths: templates/<name>.<ext> with no shell metachars.
-          for ref in $(grep -oE '`templates/[a-zA-Z0-9_-]+\.(sh|md|yml|yaml)`' SKILL.md | tr -d '`' | sort -u); do
-            if [ ! -f "$ref" ]; then
-              echo "✗ SKILL.md references missing file: $ref"
+          # SKILL.md lives in skills/qa-persona/, so templates/<file> resolves there.
+          for ref in $(grep -oE '`templates/[a-zA-Z0-9_-]+\.(sh|md|yml|yaml)`' skills/qa-persona/SKILL.md | tr -d '`' | sort -u); do
+            full="skills/qa-persona/$ref"
+            if [ ! -f "$full" ]; then
+              echo "✗ SKILL.md references missing file: $full"
               MISSING=$((MISSING+1))
             else
-              echo "✓ $ref"
+              echo "✓ $full"
             fi
           done
           [ "$MISSING" -eq 0 ] || exit 1

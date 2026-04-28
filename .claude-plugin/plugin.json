@@ -1,0 +1,11 @@
+{
+  "name": "qa-persona",
+  "description": "Persona-driven E2E testing methodology with API-first / browser-second layering, fixed-email persona catalog, and append-only Run #N walkthrough journal. Bundles the qa-persona skill + slash commands for init, persona CRUD, feature-iteration, browser walkthrough, and bug-to-issue promotion.",
+  "version": "0.2.0",
+  "author": {
+    "name": "qa-persona contributors"
+  },
+  "homepage": "https://github.com/andreykuzin/qa-persona",
+  "repository": "https://github.com/andreykuzin/qa-persona",
+  "license": "MIT"
+}

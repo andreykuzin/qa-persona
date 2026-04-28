@@ -22,35 +22,55 @@ Because mixing the two layers conflates two failure modes — backend bugs and U
 
 ## Install
 
-### Claude Code
+### Claude Code (plugin)
+
+As of v0.2.0, qa-persona is a Claude Code plugin that bundles the skill plus five slash commands.
 
 ```bash
-git clone https://github.com/<you>/qa-persona ~/.claude/skills/qa-persona
+# from a marketplace registration (preferred once published):
+claude plugin install qa-persona
+
+# or directly from a local checkout:
+git clone https://github.com/andreykuzin/qa-persona
+claude --plugin-dir ./qa-persona
 ```
 
-The skill activates when you ask Claude to "set up persona testing", "qa-persona", or similar phrases.
+The skill auto-activates on phrases like "set up persona testing" or "qa-persona". The slash commands are user-invokable any time.
+
+### Slash commands and subskills
+
+Five workflow commands, each backed by a self-contained subskill at `skills/qa-persona-<name>/SKILL.md`. Slash commands are namespaced as `/qa-persona:<name>` for explicit invocation; the subskills also auto-activate from natural-language phrases (`triggers` / `voice-triggers` arrays in frontmatter).
+
+| Slash command / Skill | Purpose |
+|---|---|
+| `/qa-persona:init` / `qa-persona-init` | Bootstrap Phases 1–4 with stop-and-confirm gates. Produces `docs/qa-persona/` + `scripts/qa/<flow>-e2e/`. |
+| `/qa-persona:persona` / `qa-persona-persona` | CRUD on personas. Keeps `personas.md` and `seed-personas.sh` in lockstep; refuses to drop emails referenced by scenarios. |
+| `/qa-persona:iterate` / `qa-persona-iterate` | After every feature ship: map to A–G categories, scaffold new scenario runners, stage the next `## Run #N` skeleton. |
+| `/qa-persona:walkthrough [--parallel]` / `qa-persona-walkthrough` | Drive Layer 2 in a real browser, capture evidence, fill in the Run #N narrative. `--parallel` dispatches per-persona sub-agents for E-category concurrency. Refuses if Layer 1 is red. |
+| `/qa-persona:bug` / `qa-persona-bug` | Promote a `bugs.md` row to a GitHub issue via `gh`; back-link the issue number into the bug tracker. Refuses on duplicate promotion. |
 
 ### Other agents (Codex, Cursor, etc.)
 
-Read `SKILL.md` directly. The methodology is agent-agnostic — only the activation mechanism differs.
+See [AGENTS.md](AGENTS.md) — pointer file for non-Claude-Code agents. The methodology is agent-agnostic; only the activation mechanism differs. Each `skills/qa-persona-*/SKILL.md` is a self-contained prompt you can paste into any agent.
 
 ## Usage
 
-In Claude Code:
+The fastest path:
 
 ```
-Set up persona-driven E2E testing for this project.
+/qa-persona:init
 ```
 
-Claude will:
+Then Claude will:
 
 1. **Phase 1 — Study the codebase** and propose the value loop in one paragraph. Stops for your approval.
 2. **Phase 2 — Propose 3–5 named personas** with email, company, role, scope. Stops for your approval.
 3. **Phase 3 — Author scenario narratives** covering happy paths and 6 categories of edge cases.
 4. **Phase 4 — Build a bash automation scaffold** (Layer 1) — one runner per scenario, idempotent persona seeding, shared helpers.
-5. **Phase 5 — Drive a browser walkthrough** (Layer 2) and write a dated narrative report with screenshots, bug table, priority list, and BR matrix.
 
-After the first pass, every new feature triggers an iterative re-run that appends a new `Run #N` to the walkthrough doc and updates the bug tracker.
+When Layer 1 is green, run `/qa-persona:walkthrough <IDs>` for Phase 5. After every feature ships, run `/qa-persona:iterate <feature>` to grow coverage. Promote any walkthrough-found bug to GitHub with `/qa-persona:bug <ID>`.
+
+You can also ignore the slash commands entirely and ask Claude in natural language — the skill activates the same way it did pre-plugin.
 
 ## What it produces
 
@@ -59,16 +79,16 @@ docs/qa-persona/
   personas.md            # Persona table (single source of truth)
   scenarios.md           # Scenario catalog with status legend
   bugs.md                # Running bug tracker
-  walkthrough-RUN-1.md   # First walkthrough
-  walkthrough-RUN-2.md   # Appended after first feature ship
-  ...
+  walkthrough-RUN-1.md   # First walkthrough — appended each run, never rewritten
 scripts/qa/<flow>-e2e/
   README.md              # How to run
   lib.sh                 # Shared bash helpers
   seed-personas.sh       # Idempotent seeder
-  scenarios/             # One runner per scenario
+  reset.sh               # Wipe domain state between runs
+  run-all.sh             # Loop scenarios, tally PASS/FAIL
+  scenarios/             # One runner per scenario (A1, B1, D1, ...)
 evidence/qa-persona/
-  *.png                  # Screenshots from browser walkthroughs
+  run-N-<ID>-step-M-{before,after}.png   # Screenshots from browser walkthroughs
 ```
 
 ## When to use

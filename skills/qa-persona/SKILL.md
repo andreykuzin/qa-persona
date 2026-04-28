@@ -1,6 +1,25 @@
 ---
 name: qa-persona
+version: 0.2.0
 description: Use when setting up end-to-end testing for a multi-actor system (marketplace, CRM, workflow tool, project management), when manual QA finds "works in tests but unusable" bugs, when test coverage needs to grow iteratively with each shipped feature, or when unit tests pass but real users get stuck driving the flow.
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Edit
+  - Write
+  - Bash
+  - AskUserQuestion
+triggers:
+  - set up persona testing
+  - set up qa-persona
+  - persona-driven testing
+  - bootstrap e2e for this multi-actor system
+  - qa-persona init
+voice-triggers:
+  - "set up persona testing"
+  - "qa persona"
+  - "test the value loop"
 ---
 
 # qa-persona

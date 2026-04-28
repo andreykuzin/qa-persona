@@ -66,6 +66,20 @@ claude plugin install qa-persona
 
 For Codex / Cursor / Gemini / any other agent, see [AGENTS.md](AGENTS.md) — every skill in this repo is a self-contained markdown prompt you can paste in.
 
+## Requirements
+
+Most of qa-persona is markdown — your agent reads it and applies it. Specific commands rely on a few external tools:
+
+| Need it for | What |
+|---|---|
+| Layer 1 bash templates (`lib.sh`, `seed-personas.sh`, scenario runners) | `bash`, `curl`, `jq` |
+| `reset.sh` against a Postgres dev DB | `docker` (or adapt to your local psql) |
+| `/qa-persona:walkthrough` | A headless browser tool — gstack `/browse`, Playwright, or Puppeteer. The skill auto-detects what's available; ask the user if it can't decide. |
+| `/qa-persona:walkthrough --parallel` | The Agent tool (Claude Code only — sub-agents are how concurrency is tested) |
+| `/qa-persona:bug` | `gh` CLI, authenticated against your repo's GitHub remote |
+
+The plugin doesn't install any of these for you. Things will fail loudly if a command is missing — the SKILL.md pre-checks call it out before doing destructive work.
+
 ## Commands
 
 Five workflow steps, available as both slash commands and natural-language skills:

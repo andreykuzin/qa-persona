@@ -59,10 +59,12 @@ Then add `~/.claude/plugins/cache/local/qa-persona` to `pluginPaths` in `~/.clau
 git clone https://github.com/andreykuzin/qa-persona.git .claude/plugins/qa-persona
 ```
 
-**Marketplace (once published):**
+**Marketplace (self-hosted, today):**
 ```bash
-claude plugin install qa-persona
+claude marketplace add andreykuzin/qa-persona
+claude plugin install qa-persona@qa-persona-marketplace
 ```
+The repo is registered as its own single-plugin marketplace via `.claude-plugin/marketplace.json` — works today, before any Anthropic Plugin Directory listing.
 
 For Codex / Cursor / Gemini / any other agent, see [AGENTS.md](AGENTS.md) — every skill in this repo is a self-contained markdown prompt you can paste in.
 

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/claude-marketplace",
+  "name": "qa-persona-marketplace",
+  "owner": {
+    "name": "Andrey Kuzin",
+    "url": "https://github.com/andreykuzin"
+  },
+  "plugins": [
+    {
+      "name": "qa-persona",
+      "source": {
+        "source": "github",
+        "repo": "andreykuzin/qa-persona"
+      },
+      "description": "Persona-driven E2E testing for multi-user SaaS apps. AI agents drive named personas (with intent, scope, and a point of view) through your system in two layers — fast API automation first, then a browser walkthrough that catches the works-but-unusable UX gaps. Catalog and bug tracker grow with every feature ship.",
+      "version": "0.2.0",
+      "category": "testing",
+      "tags": [
+        "e2e-testing",
+        "qa",
+        "personas",
+        "saas",
+        "multi-actor",
+        "browser-testing",
+        "api-testing"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/andreykuzin/qa-persona",
+      "author": {
+        "name": "Andrey Kuzin",
+        "url": "https://github.com/andreykuzin"
+      }
+    }
+  ]
+}

@@ -1,29 +1,29 @@
 # Examples
 
-## Origin: B2B fiber marketplace (NEON-Transport / TNEP)
+## Origin: B2B connectivity marketplace
 
-The methodology was extracted from a working implementation on a B2B fiber-leasing marketplace where ISPs request dark-fiber capacity from FiberCos via a multi-supplier RFP flow.
+The methodology was extracted from a working implementation on a B2B connectivity marketplace where buyers request network capacity from suppliers via a multi-supplier RFP flow.
 
 ### What was tested
 
-Two-sided marketplace with two primary actor types:
-- **ISPs** (buyers) — request fiber connectivity between two endpoints.
-- **FiberCos** (suppliers) — own fiber, publish rate cards, respond with proposals.
+Two-sided marketplace with three primary actor types:
+- **Buyers** — request connectivity between two endpoints.
+- **Suppliers** — own network infrastructure, publish rate cards, respond with proposals.
 - **Platform admin** — setup, impersonation, support.
 
 ### Personas used
 
 | Email | Company | Role | Intended use |
 |---|---|---|---|
-| `persona-isp@ezecom.com` | EZECOM | isp_buyer | Default buyer |
-| `persona-isp@smartaxiata.com` | Smart Axiata | isp_buyer | Second buyer (multi-buyer scenarios) |
-| `persona-df-only@telcotech.com` | Telcotech | engineer (dark_fiber team) | Default supplier |
-| `persona-df-cfocn@cfocn.com` | CFOCN | engineer (dark_fiber team) | Backbone-cost competitor |
-| `persona-df-adi@angkordata.com` | Angkor Data Infra | engineer | Premium-SLA competitor |
-| `persona-ftth-only@telcotech.com` | Telcotech | engineer (ftth team only) | Team-gating tests (must be blocked) |
-| `persona-noteam@telcotech.com` | Telcotech | engineer (no team) | Team-gating tests |
-| `persona-viewer@telcotech.com` | Telcotech | viewer | Write-block tests (must 403) |
-| `admin@neon-transport.com` | — | admin | Setup, impersonation |
+| `persona-buyer@acme.com` | Acme Networks | buyer | Default buyer |
+| `persona-buyer@contoso.com` | Contoso Corp | buyer | Second buyer (multi-buyer scenarios) |
+| `persona-supplier-1@globex.com` | Globex Telecom | engineer (wholesale team) | Default supplier |
+| `persona-supplier-2@initech.com` | Initech Networks | engineer (wholesale team) | Cost-competitive competitor |
+| `persona-supplier-3@fabrikam.com` | Fabrikam Infrastructure | engineer (wholesale team) | Premium-SLA competitor |
+| `persona-othersegment@globex.com` | Globex Telecom | engineer (consumer team only) | Team-gating tests (must be blocked) |
+| `persona-noteam@globex.com` | Globex Telecom | engineer (no team) | Team-gating tests |
+| `persona-viewer@globex.com` | Globex Telecom | viewer | Write-block tests (must 403) |
+| `admin@platform.example` | — | admin | Setup, impersonation |
 
 ### Walkthrough runs
 
@@ -47,14 +47,14 @@ Three runs documented over a 2-week window:
 ### Key insights
 
 1. **API-first ordering matters.** Bug 1 and Bug 2 were API bugs that would have been impossible to triage if the browser walkthrough had been done first — confused UI behaviour would have been blamed on the frontend.
-2. **Auto-seed friction is invisible to pytest.** Bugs 4 & 5 surfaced as "the FiberCo had to override the price every time" — a UX problem that only a human-in-the-loop walkthrough catches.
+2. **Auto-seed friction is invisible to pytest.** Bugs 4 & 5 surfaced as "the supplier had to override the price every time" — a UX problem that only a human-in-the-loop walkthrough catches.
 3. **Multi-actor scenarios force tenant-isolation correctness.** Run #3 (three different supplier companies on same RFP) was where ranking gaps and "why did I lose?" feedback gaps surfaced. They were invisible until competing suppliers all logged in on the same deal.
 
-### Reference docs
+### Reference material
 
-If you have access to the TNEP repo:
-- `docs/superpowers/specs/2026-04-27-e2e-walkthrough-experience.md` — full walkthrough report (Runs #1–#3).
-- `scripts/qa/marketplace-e2e/README.md` — Layer-1 bash scaffold used in production.
-- `scripts/qa/marketplace-e2e/scenarios.md` — scenario catalog with status legend.
+Internal artifacts from the original implementation (private repo):
+- Full walkthrough report covering Runs #1–#3.
+- Layer-1 bash scaffold used in production at `scripts/qa/marketplace-e2e/`.
+- Scenario catalog with status legend.
 
 These were the source material for the templates in this repo.

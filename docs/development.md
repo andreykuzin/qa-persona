@@ -4,13 +4,13 @@
 
 ### Origin
 
-Methodology extracted from a B2B fiber-leasing marketplace (FiberCo ↔ ISP RFP). Three persona walkthroughs across single-supplier, full-UI, and 3-supplier-RFP scenarios surfaced 6 bugs (1 major API 500, 2 medium status-machine bugs, 3 medium/minor UX) and 14 prioritized improvements that no unit test caught.
+Methodology extracted from a B2B connectivity marketplace (Supplier ↔ Buyer RFP). Three persona walkthroughs across single-supplier, full-UI, and 3-supplier-RFP scenarios surfaced 6 bugs (1 major API 500, 2 medium status-machine bugs, 3 medium/minor UX) and 14 prioritized improvements that no unit test caught.
 
 Original implementation lives in the source repo at:
 - `scripts/qa/marketplace-e2e/` — Layer 1 bash scaffold
 - `docs/superpowers/specs/2026-04-27-e2e-walkthrough-experience.md` — full Run #1–#3 walkthrough report
 
-The v1 skill packaged the structural pieces (5 phases, 7 scenario categories, two-layer ordering, append-only journal, bug tracker) without baking in the fiber-marketplace domain.
+The v1 skill packaged the structural pieces (5 phases, 7 scenario categories, two-layer ordering, append-only journal, bug tracker) without baking in the connectivity-marketplace domain.
 
 ### Test-driven development
 

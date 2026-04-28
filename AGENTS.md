@@ -58,7 +58,7 @@ skills/
   qa-persona-walkthrough/SKILL.md  # subskill: browser walkthrough (+ --parallel)
   qa-persona-bug/SKILL.md          # subskill: bug → GitHub issue
 docs/                              # contributor docs
-examples/                          # case study from the original B2B fiber marketplace
+examples/                          # case study from the original B2B connectivity marketplace
 tests/                             # RED / GREEN / PRESSURE skill validation prompts
 ```
 

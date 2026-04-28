@@ -37,7 +37,7 @@ Initial public release.
 ### Added
 - `SKILL.md` — five-phase methodology with API-first / browser-second layering.
 - `templates/` — persona table, scenario catalog, walkthrough report, bug tracker, plus bash scaffold (`lib.sh`, `seed-personas.sh`, `reset.sh`, `run-all.sh`, `scenario.sh`).
-- `examples/README.md` — case study from the B2B fiber marketplace where the methodology was distilled.
+- `examples/README.md` — case study from the B2B connectivity marketplace where the methodology was distilled.
 - `tests/` — RED, GREEN, and PRESSURE pressure-scenarios for skill validation, plus v1 results.
 - `docs/development.md` — development log, refactor decisions, open questions.
 - CI: shellcheck, frontmatter validation, bash syntax, link checker.

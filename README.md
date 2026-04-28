@@ -14,7 +14,7 @@ A real customer opens it the next morning and gets stuck on step three.
 
 This happens because unit tests answer "does this function return the right value." They don't answer "did the right person see the right thing at the right time, and could they actually do something useful with it." That second question is where SaaS apps with more than one type of user — buyers and sellers, admins and managers and contributors, requesters and approvers — go wrong.
 
-The gap is bigger than people think. On the B2B fiber marketplace this methodology was extracted from, three persona walkthroughs surfaced six bugs that 200+ pytest tests had missed: a 500 in the accept-proposal path, two status-machine bugs that only triggered on the second idempotent call, three UX bugs that were technically "working" but unusable in practice.
+The gap is bigger than people think. On the B2B connectivity marketplace this methodology was extracted from, three persona walkthroughs surfaced six bugs that 200+ pytest tests had missed: a 500 in the accept-proposal path, two status-machine bugs that only triggered on the second idempotent call, three UX bugs that were technically "working" but unusable in practice.
 
 If your tests live in `tests/test_*.py` and your bugs live in customer support tickets, the gap between them is what qa-persona is for.
 
@@ -22,12 +22,12 @@ If your tests live in `tests/test_*.py` and your bugs live in customer support t
 
 qa-persona tests your app the way real users would use it.
 
-You don't write `test_create_request_returns_201`. You write a persona — Sarah, the network engineer at EZECOM, who has $8k/month to spend and needs fiber capacity to a new POP — and an AI agent drives Sarah through your system end to end. First through the API (fast, deterministic, proves the business loop closes). Then through the browser (catches the "works but unusable" UX gaps the API tests can't see).
+You don't write `test_create_request_returns_201`. You write a persona — Sarah, the network engineer at Acme Networks, who has $8k/month to spend and needs network capacity provisioned to a new site — and an AI agent drives Sarah through your system end to end. First through the API (fast, deterministic, proves the business loop closes). Then through the browser (catches the "works but unusable" UX gaps the API tests can't see).
 
 Each persona is a real character, not a credential:
 
-- **An intent.** Sarah is trying to get fiber installed under budget. She's not trying to "POST a JSON body."
-- **A fixed identity.** `persona-isp@ezecom.com` is the same Sarah in every test run. The product evolves; she stays — so coverage compounds across releases instead of starting over.
+- **An intent.** Sarah is trying to get connectivity provisioned under budget. She's not trying to "POST a JSON body."
+- **A fixed identity.** `persona-buyer@acme.com` is the same Sarah in every test run. The product evolves; she stays — so coverage compounds across releases instead of starting over.
 - **A scope.** Sarah can't see what BigCorp's account is doing. If she can, that's a bug. The persona-isolation rules catch it.
 - **A point of view.** When Sarah gets stuck, *that's the test signal.* "I couldn't tell which supplier won my deal" is a finding. Pytest can't tell you that. A persona walking the flow can.
 
@@ -171,7 +171,7 @@ You can absolutely use Playwright as the Layer-2 driver. qa-persona is a methodo
 
 ## Origin
 
-Battle-tested on a B2B fiber marketplace where ISPs request dark-fiber capacity from FiberCos via a multi-supplier RFP flow. Three persona walkthroughs across single-supplier, full-UI, and three-supplier scenarios surfaced six bugs and fourteen prioritized improvements that no unit test caught. See [examples/README.md](examples/README.md) for the case study with bug-by-bug detail.
+Battle-tested on a B2B connectivity marketplace where buyers request network capacity from suppliers via a multi-supplier RFP flow. Three persona walkthroughs across single-supplier, full-UI, and three-supplier scenarios surfaced six bugs and fourteen prioritized improvements that no unit test caught. See [examples/README.md](examples/README.md) for the case study with bug-by-bug detail.
 
 ## License
 

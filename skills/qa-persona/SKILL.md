@@ -145,4 +145,4 @@ The catalog grows monotonically. The bug tracker is the running ledger.
 
 ## Real-World Origin
 
-Originated in a B2B fiber marketplace (FiberCo ↔ ISP RFP). Three runs across single-supplier, full-UI, and 3-supplier RFP scenarios surfaced 6 bugs (1 major API 500, 2 medium status-machine bugs, 3 medium/minor UX) and 14 prioritized improvements that no unit test caught. See `examples/README.md` for the full case study.
+Originated in a B2B connectivity marketplace (Supplier ↔ Buyer RFP). Three runs across single-supplier, full-UI, and 3-supplier RFP scenarios surfaced 6 bugs (1 major API 500, 2 medium status-machine bugs, 3 medium/minor UX) and 14 prioritized improvements that no unit test caught. See `examples/README.md` for the full case study.

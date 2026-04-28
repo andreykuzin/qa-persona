@@ -1,103 +1,118 @@
 # qa-persona
 
-Persona-driven E2E testing methodology, packaged as a Claude Code skill.
+End-to-end testing for multi-user SaaS apps, driven by AI-generated personas with goals, scope, and a point of view. Catches the bugs unit tests can't.
 
-Tests multi-actor systems by walking named personas through the value loop, in two layers:
+## The problem
 
-- **Layer 1 — API automation.** Fast bash scenarios (~10–30s each) that prove the business loop closes. Curl the API, query the DB, assert the lifecycle truth table.
-- **Layer 2 — Browser walkthrough.** Headless browser pass that catches "works but unusable" UX gaps the API tests can't see.
+You ship a feature. Pytest passes. CI is green. You demo it internally and everything looks fine.
 
-Designed to grow with the product: each new feature triggers an iterative pass that revisits affected narratives, appends a new `Run #N` to the walkthrough log, and updates a running bug tracker.
+A real customer opens it the next morning and gets stuck on step three.
 
-## Why not just Playwright?
+This happens because unit tests answer "does this function return the right value." They don't answer "did the right person see the right thing at the right time, and could they actually do something useful with it." That second question is where SaaS apps with more than one type of user — buyers and sellers, admins and managers and contributors, requesters and approvers — go wrong.
 
-Playwright tests UI rendering. This methodology tests **business reality**: did the right actor see the right thing at the right time, and is the resulting data shape something the next workflow can actually use? The narrative walkthrough forces you to write down what was confusing, what was missing, what should have been there. No automation generates that.
+The gap is bigger than people think. On the B2B fiber marketplace this methodology was extracted from, three persona walkthroughs surfaced six bugs that 200+ pytest tests had missed: a 500 in the accept-proposal path, two status-machine bugs that only triggered on the second idempotent call, three UX bugs that were technically "working" but unusable in practice.
 
-## Why API first, browser second?
+If your tests live in `tests/test_*.py` and your bugs live in customer support tickets, the gap between them is what qa-persona is for.
 
-Because mixing the two layers conflates two failure modes — backend bugs and UX bugs — into one report, which makes triage harder. API-first separates correctness from usability so each layer's feedback is pure:
+## What it does
 
-- **Layer 1 fails** → backend or data-model bug. Fix and rerun.
-- **Layer 2 fails** → UX/copy/flow bug. The data is right; the human can't get to it.
+qa-persona tests your app the way real users would use it.
 
-## Install
+You don't write `test_create_request_returns_201`. You write a persona — Sarah, the network engineer at EZECOM, who has $8k/month to spend and needs fiber capacity to a new POP — and an AI agent drives Sarah through your system end to end. First through the API (fast, deterministic, proves the business loop closes). Then through the browser (catches the "works but unusable" UX gaps the API tests can't see).
 
-### Claude Code (plugin)
+Each persona is a real character, not a credential:
 
-As of v0.2.0, qa-persona is a Claude Code plugin that bundles the skill plus five slash commands.
+- **An intent.** Sarah is trying to get fiber installed under budget. She's not trying to "POST a JSON body."
+- **A fixed identity.** `persona-isp@ezecom.com` is the same Sarah in every test run. The product evolves; she stays — so coverage compounds across releases instead of starting over.
+- **A scope.** Sarah can't see what BigCorp's account is doing. If she can, that's a bug. The persona-isolation rules catch it.
+- **A point of view.** When Sarah gets stuck, *that's the test signal.* "I couldn't tell which supplier won my deal" is a finding. Pytest can't tell you that. A persona walking the flow can.
 
+Three to five personas usually cover the value loop. The catalog grows with the product: every new feature ship triggers an iterative re-run that revisits affected personas, appends a new run to the walkthrough log, and updates the bug tracker. The catalog never shrinks.
+
+## How the two layers fit together
+
+Tests run in two layers, in this order:
+
+1. **API automation first.** Fast bash scenarios, ~10–30 seconds each, that prove the business loop actually closes. Curl the API, query the DB, assert the lifecycle truth table. If a Layer 1 fails, it's a backend bug — full stop.
+
+2. **Browser walkthrough second.** Once Layer 1 is green, drive the same scenario through the real UI in a headless browser. Anything that fails here is a UX bug — the data is right, the human can't get to it.
+
+Mixing the two layers conflates failure modes. API-first separates correctness from usability so each layer's feedback is pure.
+
+## Install (Claude Code)
+
+qa-persona is shipped as a Claude Code plugin. Three install paths, in order of how often they're the right answer:
+
+**User-level (recommended — works across every project):**
 ```bash
-# from a marketplace registration (preferred once published):
-claude plugin install qa-persona
+git clone https://github.com/andreykuzin/qa-persona.git \
+  ~/.claude/plugins/cache/local/qa-persona
+```
+Then add `~/.claude/plugins/cache/local/qa-persona` to `pluginPaths` in `~/.claude/settings.json`.
 
-# or directly from a local checkout:
-git clone https://github.com/andreykuzin/qa-persona
-claude --plugin-dir ./qa-persona
+**Per-project:**
+```bash
+git clone https://github.com/andreykuzin/qa-persona.git .claude/plugins/qa-persona
 ```
 
-The skill auto-activates on phrases like "set up persona testing" or "qa-persona". The slash commands are user-invokable any time.
+**Marketplace (once published):**
+```bash
+claude plugin install qa-persona
+```
 
-### Slash commands and subskills
+For Codex / Cursor / Gemini / any other agent, see [AGENTS.md](AGENTS.md) — every skill in this repo is a self-contained markdown prompt you can paste in.
 
-Five workflow commands, each backed by a self-contained subskill at `skills/qa-persona-<name>/SKILL.md`. Slash commands are namespaced as `/qa-persona:<name>` for explicit invocation; the subskills also auto-activate from natural-language phrases (`triggers` / `voice-triggers` arrays in frontmatter).
+## Commands
 
-| Slash command / Skill | Purpose |
-|---|---|
-| `/qa-persona:init` / `qa-persona-init` | Bootstrap Phases 1–4 with stop-and-confirm gates. Produces `docs/qa-persona/` + `scripts/qa/<flow>-e2e/`. |
-| `/qa-persona:persona` / `qa-persona-persona` | CRUD on personas. Keeps `personas.md` and `seed-personas.sh` in lockstep; refuses to drop emails referenced by scenarios. |
-| `/qa-persona:iterate` / `qa-persona-iterate` | After every feature ship: map to A–G categories, scaffold new scenario runners, stage the next `## Run #N` skeleton. |
-| `/qa-persona:walkthrough [--parallel]` / `qa-persona-walkthrough` | Drive Layer 2 in a real browser, capture evidence, fill in the Run #N narrative. `--parallel` dispatches per-persona sub-agents for E-category concurrency. Refuses if Layer 1 is red. |
-| `/qa-persona:bug` / `qa-persona-bug` | Promote a `bugs.md` row to a GitHub issue via `gh`; back-link the issue number into the bug tracker. Refuses on duplicate promotion. |
+Five workflow steps, available as both slash commands and natural-language skills:
 
-### Other agents (Codex, Cursor, etc.)
+| Slash command | Skill name | What it does |
+|---|---|---|
+| `/qa-persona:init` | `qa-persona-init` | Bootstrap on a fresh codebase. Studies the repo, proposes the value loop, gates for your approval, then proposes 3–5 personas, then a scenario catalog covering happy paths and six categories of edge cases, then scaffolds the bash automation. |
+| `/qa-persona:persona` | `qa-persona-persona` | Add, remove, or rename a persona. Keeps `personas.md` and `seed-personas.sh` in lockstep. Refuses to drop a persona whose email is still referenced by scenarios. |
+| `/qa-persona:iterate` | `qa-persona-iterate` | Run after every feature ship. Maps the new feature into the catalog, proposes new scenarios, scaffolds runners, and stages the next run skeleton in the walkthrough doc. |
+| `/qa-persona:walkthrough` | `qa-persona-walkthrough` | Drive the browser pass. Add `--parallel` for multi-actor scenarios where one Claude can't honestly race itself — dispatches one sub-agent per persona with strict isolation. |
+| `/qa-persona:bug` | `qa-persona-bug` | Promote a bug from the running ledger to a GitHub issue via `gh`, back-link the issue number, refuse on duplicates. |
 
-See [AGENTS.md](AGENTS.md) — pointer file for non-Claude-Code agents. The methodology is agent-agnostic; only the activation mechanism differs. Each `skills/qa-persona-*/SKILL.md` is a self-contained prompt you can paste into any agent.
-
-## Usage
-
-The fastest path:
+The shortest possible kickoff:
 
 ```
 /qa-persona:init
 ```
 
-Then Claude will:
+You'll get the value-loop summary, then approve or correct it. Personas come next, then scenarios, then the bash scaffold. Three stop-and-confirm gates, on purpose — the methodology is built around pausing before commitment because the most expensive class of test-suite mistakes is the silent one.
 
-1. **Phase 1 — Study the codebase** and propose the value loop in one paragraph. Stops for your approval.
-2. **Phase 2 — Propose 3–5 named personas** with email, company, role, scope. Stops for your approval.
-3. **Phase 3 — Author scenario narratives** covering happy paths and 6 categories of edge cases.
-4. **Phase 4 — Build a bash automation scaffold** (Layer 1) — one runner per scenario, idempotent persona seeding, shared helpers.
-
-When Layer 1 is green, run `/qa-persona:walkthrough <IDs>` for Phase 5. After every feature ships, run `/qa-persona:iterate <feature>` to grow coverage. Promote any walkthrough-found bug to GitHub with `/qa-persona:bug <ID>`.
-
-You can also ignore the slash commands entirely and ask Claude in natural language — the skill activates the same way it did pre-plugin.
-
-## What it produces
+## What gets created on disk
 
 ```
 docs/qa-persona/
-  personas.md            # Persona table (single source of truth)
+  personas.md            # Persona table — single source of truth
   scenarios.md           # Scenario catalog with status legend
   bugs.md                # Running bug tracker
-  walkthrough-RUN-1.md   # First walkthrough — appended each run, never rewritten
+  walkthrough-RUN-1.md   # The walkthrough journal — appended each run, never rewritten
+
 scripts/qa/<flow>-e2e/
   README.md              # How to run
   lib.sh                 # Shared bash helpers
-  seed-personas.sh       # Idempotent seeder
-  reset.sh               # Wipe domain state between runs
+  seed-personas.sh       # Idempotent persona seeder
+  reset.sh               # Wipe domain state between runs (preserves personas)
   run-all.sh             # Loop scenarios, tally PASS/FAIL
   scenarios/             # One runner per scenario (A1, B1, D1, ...)
+
 evidence/qa-persona/
   run-N-<ID>-step-M-{before,after}.png   # Screenshots from browser walkthroughs
 ```
 
-## When to use
+## When it fits
 
-- Multi-actor systems (marketplaces, CRMs, workflow tools, project management).
-- "Unit tests pass but real users get stuck" is a recurring problem.
-- You want test coverage that grows automatically with features.
+Use qa-persona when:
 
-## When NOT to use
+- Your app has more than one type of user with different goals.
+- Your unit tests pass but real users still get stuck.
+- You want test coverage that grows as you ship, instead of decaying.
+- Marketplace, CRM, project-management tool, workflow tool, multi-tenant SaaS — anything with a value loop that requires multiple actors to close.
+
+Don't use it for:
 
 - Single-user CLI tools.
 - Libraries with no UI.
@@ -105,10 +120,10 @@ evidence/qa-persona/
 
 ## Related work
 
-qa-persona stands on the shoulders of several traditions and overlaps partially with each. None do all of: fixed-email persona catalog + API-first/browser-second ordering + append-only Run #N journal + verified-fixed bug tracker + coverage that grows with each ship.
+qa-persona stands on traditions and overlaps with each. None do all of: a fixed-email persona catalog + API-first / browser-second ordering + an append-only run journal + a verified-fixed bug tracker + coverage that grows with each ship.
 
-- **Persona-Based Testing** (manual-QA discipline) — qa-persona inherits the "named actor with goals/frustrations" idea and automates it.
-- **BDD / Gherkin / Cucumber / SpecFlow** — "As a &lt;persona&gt;" is canonical, but persona is per-scenario; qa-persona promotes it to a stable catalog.
+- **Persona-Based Testing** (manual-QA discipline) — qa-persona inherits the "named actor with goals and frustrations" idea and automates it.
+- **BDD / Gherkin / Cucumber / SpecFlow** — "As a &lt;persona&gt;" is canonical, but the persona is per-scenario; qa-persona promotes it to a stable catalog.
 - **[Karate DSL](https://karatelabs.io/)** — closest non-AI cousin to the unified API+UI layer.
 - **[Xray (Jira)](https://www.getxray.app/)** — closest cousin to "coverage tied to releases," but manually curated, not journal-style.
 - **[agentmantis/test-skills](https://github.com/agentmantis/test-skills)** — Playwright SDET skills with handover→regression promotion; framework-discipline rather than persona/journal-driven.
@@ -116,9 +131,15 @@ qa-persona stands on the shoulders of several traditions and overlaps partially 
 - **[wshobson/agents · qa-orchestra](https://github.com/wshobson/agents)** — multi-agent QA with Chrome MCP; orchestrator pattern, single-pass.
 - **mabl / Functionize** — closed-source AI-driven exploratory + self-healing; flow-based, no persona catalog or run journal exposed as artifacts.
 
+## Why not just Playwright?
+
+Playwright tests UI rendering. This methodology tests business reality — did the right actor see the right thing at the right time, and is the resulting data shape something the next workflow can actually use. The narrative walkthrough forces you to write down what was confusing, what was missing, what should have been there. No automation generates that.
+
+You can absolutely use Playwright as the Layer-2 driver. qa-persona is a methodology, not a framework — bring whatever browser tool you already trust.
+
 ## Origin
 
-Battle-tested on a B2B fiber marketplace (FiberCo ↔ ISP RFP). Three runs across single-supplier and three-supplier scenarios surfaced 6 bugs and 14 prioritized improvements that no unit test caught. See `examples/README.md` for the full case study.
+Battle-tested on a B2B fiber marketplace where ISPs request dark-fiber capacity from FiberCos via a multi-supplier RFP flow. Three persona walkthroughs across single-supplier, full-UI, and three-supplier scenarios surfaced six bugs and fourteen prioritized improvements that no unit test caught. See [examples/README.md](examples/README.md) for the case study with bug-by-bug detail.
 
 ## License
 
@@ -126,4 +147,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## Contributing
 
-PRs welcome. The skill itself was authored as a v1 against a proven methodology but without the full TDD subagent testing cycle that `superpowers:writing-skills` recommends. If you find rationalizations agents use to skip phases, please file an issue with the verbatim quote — that's the gold dust for the next refactor pass.
+PRs welcome. The first version was written against a proven methodology, not the full TDD subagent testing cycle that `superpowers:writing-skills` recommends. If you find rationalizations agents use to skip phases, file an issue with the verbatim quote — that's the gold dust for the next refactor pass.

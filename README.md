@@ -60,11 +60,15 @@ git clone https://github.com/andreykuzin/qa-persona.git .claude/plugins/qa-perso
 ```
 
 **Marketplace (self-hosted, today):**
-```bash
-claude marketplace add andreykuzin/qa-persona
-claude plugin install qa-persona@qa-persona-marketplace
+
+In an active Claude Code session, run these two slash commands:
+```
+/plugin marketplace add andreykuzin/qa-persona
+/plugin install qa-persona@qa-persona-marketplace
 ```
 The repo is registered as its own single-plugin marketplace via `.claude-plugin/marketplace.json` — works today, before any Anthropic Plugin Directory listing.
+
+> Note: `/plugin install` clones the plugin's repo. If your git is configured to rewrite GitHub URLs to SSH (`url.git@github.com:.insteadOf`), the second command will fail with "Permission denied (publickey)." Either remove the rewrite rule (`git config --global --unset url.git@github.com:.insteadOf`), set up SSH keys, or fall back to the user-level path above.
 
 For Codex / Cursor / Gemini / any other agent, see [AGENTS.md](AGENTS.md) — every skill in this repo is a self-contained markdown prompt you can paste in.
 

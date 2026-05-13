@@ -4,6 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/github/v/tag/andreykuzin/qa-persona?label=version)](https://github.com/andreykuzin/qa-persona/releases)
 
+![Demo](docs/demo.gif)
+*`/qa-persona:init` running against [listmonk](https://github.com/knadh/listmonk) — value-loop summary and persona table from the [2026-05-12 dogfood run](https://github.com/andreykuzin/qa-persona/issues/1). Run `vhs scripts/demo.tape` to regenerate.*
+
 End-to-end testing for multi-user SaaS apps, driven by AI-generated personas with goals, scope, and a point of view. Catches the bugs unit tests can't.
 
 ## The problem
